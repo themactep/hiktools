@@ -6,7 +6,10 @@ English version can be found [here](https://github.com/MatrixEditor/hikvision-sd
 DISCLAIMER: Alle informationen, die hier gepostet werden/ wurden, sind öffentlich auf anderen Seiten zugänglich. Dieses Repository bietet nur einen generellen Überblick über die Möglichkeitenvon Übergriffen, die durch die gebotenen Schwachstellen entstanden sind.
 </b>
 
+#
 <b>UPDATE: Nach einem Firmware-Update 2017 sind die meisten Geräte gegen diese Schwachstelle immun. [Hier](https://sergei.nz/reverse-engineering-hikvision-sadp-tool/) gibt es einen Artikel zum Reverse-Engineering des neuen Passwort-Reset-Tools von Hikvision.</b>
+#
+[Hier](https://github.com/MatrixEditor/hikvision-sdk-cam/blob/main/doc/udp.md) geht es zur unoffiziellen Dokumentation der UDP basierten Kommunikation mit der Kamera. Diese wird auch von dem Passwort-Reset-Tool von Hikvision zum Reset verwendet.
 
 ## Backdoor
 
