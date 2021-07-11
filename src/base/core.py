@@ -3,7 +3,6 @@ import requests
 import xml.etree.cElementTree as etree
 import html.parser
 
-from bs4 import BeautifulSoup
 from requests import Response
 from xml.etree.ElementTree import Element
 
@@ -149,17 +148,6 @@ def debug(msg: str) -> None:
 def quit() -> None:
     print("Quitting...")
     sys.exit(0)
-
-def parse_html(pag) -> BeautifulSoup:
-        debug("[*] Parsing...")
-        s_soup = None
-        try:
-            s_soup = BeautifulSoup(pag, "html.parser")   
-        except:
-            print("[!] Error while parsing the website")
-            quit()
-        debug("[*] Parsing complete.")
-        return s_soup
 
 def error(msg: str):
     print(f" [!] {msg}")
