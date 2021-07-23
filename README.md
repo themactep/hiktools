@@ -43,7 +43,7 @@ By the way: Die meisten API-Abfragen, siehe [commands.py](https://github.com/Mat
 
 URL für einen Livestream (mit VLC-Player oder QuickTime-Player wiedergeben; der AUTH_KEY funktionier hierbei nicht):
 
-    rtsp://<UNAME>:<PWD>@192.168.189.5:554/Streaming/channels/1/
+    rtsp://<UNAME>:<PWD>@<IP-ADDRESS>:554/Streaming/channels/1/
 
 ## Main.py
 
