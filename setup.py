@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-  name="boseapi",
+  name="hiktools",
   version="1.0.03",
   description="Hiktools",
   url="https://github.com/MatrixEditor/hiktools",

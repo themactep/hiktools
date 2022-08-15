@@ -10,9 +10,8 @@ Native Search Active Devices Protocol (CSADP)
 ReadTheDocs build fails on this module. Please refer to the documented source code
 to get familiar with this module.
 
-Usage:
-
 .. code:: python
+  :caption: Usage:
 
   from hiktools import csadp
 
