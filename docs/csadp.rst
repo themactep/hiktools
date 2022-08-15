@@ -7,8 +7,12 @@ Native Search Active Devices Protocol (CSADP)
 
 .. contents:: Table of Contents
 
-ReadTheDocs build fails on this module. Please refer to the documented source code
-to get familiar with this module.
+CService
+~~~~~~~~
+
+.. automodule:: hiktools.csadp.CService
+
+.. autofunction:: hiktools.csadp.CService.l2socket
 
 .. code:: python
   :caption: Usage:
@@ -34,4 +38,62 @@ to get familiar with this module.
   sock.send(packet) # or sock.send(bytes(packet_obj))
   response = csadp.parse(sock.recv(1024))
 
+Interface
+~~~~~~~~~
 
+Checksum interfaces
+-------------------
+
+.. autofunction:: hiktools.csadp.verify
+
+.. autofunction:: hiktools.csadp.checksum
+
+.. autofunction:: hiktools.csadp.from_buf
+
+CSAPDMessages
+-------------
+
+.. autofunction:: hiktools.csadp.parse
+
+Packet
+------
+
+.. autofunction:: hiktools.csadp.stom
+
+.. autofunction:: hiktools.csadp.mtos
+
+.. autofunction:: hiktools.csadp.stoi
+
+.. autofunction:: hiktools.csadp.itos
+
+.. autofunction:: hiktools.csadp.packet
+
+Enums
+~~~~~
+
+.. autoclass:: hiktools.csadp.PacketType
+
+Classes
+~~~~~~~
+
+Array
+-----
+
+.. autoclass:: hiktools.csadp.Array
+  :members:
+
+ByteBuffer
+----------
+
+.. autoclass:: hiktools.csadp.ByteBuffer
+  :members:
+
+
+Message
+-------
+
+.. autoclass:: hiktools.csadp.CSADPMessage
+  :members:
+
+.. autoclass:: hiktools.csadp.EthernetHeader
+  :members:

@@ -31,17 +31,17 @@ __all__ = ['l2socket']
 from sys import platform
 
 # Check if the program is running with root priviledges
-# if platform != 'linux':
-#   raise OSError('Unsupported platform!')
-# else:
-#   try:
-#     import os
+if platform != 'linux':
+  raise OSError('Unsupported platform!')
+else:
+  try:
+    import os
 
-#     if os.getuid():
-#       raise PermissionError('This library requires super-user priviledges.')
+    if os.getuid():
+      raise PermissionError('This library requires super-user priviledges.')
 
-#   except AttributeError:
-#     raise PermissionError('This library requires super-user priviledges.')
+  except AttributeError:
+    raise PermissionError('This library requires super-user priviledges.')
 
 import socket
 
