@@ -10,7 +10,7 @@ This respository was former known as `hikvision-sdk-cam`, but has changed since 
 * Send raw SADP packets (only Linux) and 
 * Send commands via UDP Broadcast. 
 
-To get familiar with the API provided in this repository, take a quick look at the documentation available **[here »]()**
+To get familiar with the API provided in this repository, take a quick look at the documentation available **[here »](https://hiktools.readthedocs.io/)**
 
 ### Overview
 ---
