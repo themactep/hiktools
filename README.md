@@ -1,89 +1,122 @@
-# hikvision-sdk-cam
+# Hiktools
 
-English version can be found [here](https://github.com/MatrixEditor/hikvision-sdk-cam/blob/main/eng.md).
+![Module](https://img.shields.io:/static/v1?label=Module&message=hiktools&color=9cf)
+![Build](https://img.shields.io:/static/v1?label=Python&message=>=3.5&color=green)
+![Platform](https://img.shields.io:/static/v1?label=Platforms&message=Linux|Windows&color=yellowgreen)
 
-<b>
-DISCLAIMER: Alle informationen, die hier gepostet werden/ wurden, sind öffentlich auf anderen Seiten zugänglich. Dieses Repository bietet nur einen generellen Überblick über die Möglichkeitenvon Übergriffen, die durch die gebotenen Schwachstellen entstanden sind.
-</b>
+This respository was former known as `hikvision-sdk-cam`, but has changed since the old content of this repository was deleted. This is now a small project with four main functionalities: 
+* A Wireshark dissector for the Search Active Devices Protocol,
+* Decrypt and extract hikvision firmware, 
+* Send raw SADP packets (only Linux) and 
+* Send commands via UDP Broadcast. 
 
-#
-<b>UPDATE: Nach einem Firmware-Update 2017 sind die meisten Geräte gegen diese Schwachstelle immun. [Hier](https://sergei.nz/reverse-engineering-hikvision-sadp-tool/) gibt es einen Artikel zum Reverse-Engineering des neuen Passwort-Reset-Tools von Hikvision.</b>
-#
-[Hier](https://github.com/MatrixEditor/hikvision-sdk-cam/blob/main/doc/udp.md) geht es zur unoffiziellen Dokumentation der UDP basierten Kommunikation mit der Kamera. Diese wird auch von dem Passwort-Reset-Tool von Hikvision zum Reset verwendet.
+To get familiar with the API provided in this repository, take a quick look at the documentation available **[here »]()**
 
-## Backdoor
+### Overview
+---
+Unfortunately, the SADP packet creation does not work properly due to invalid checksum calculation. The disassembled source code for its algorithm is given in [Checksum.cpp](/gists/csadp/CheckSum.cpp). Therefore, a simple alternative with a pre-calculated checksum is used until the algorithm works. You can disassemble [this](/gists/libsadp.so) shared object library and try it yourself.
 
-Es ist schon seit ein paar Jahren bekannt, dass es eine Backdoor in den Hikvision-Kameras gibt. Diese hätte geheim gehalten werden können, hätte man den Authentifizierungsschlüssel nicht in ein open-source Passwort-Reset-Tool geschrieben (Stichwort: HikPassword-Helper). Der Schlüssel lautet:
+> Source code of the packet creation method is provided in [CPacketSender.cpp](/gists/csadp/CPacketSender.cpp).
 
-    AUTH_KEY = 'YWRtaW46MTEK'
+Communication on UDP works fine at the moment - this API is just a small wrapper which can be used for a more general API. 
 
-Mithilfe dieses Schlüssels ist der Zugriff auf die interne Web-API der Kamera grundsätzlich möglich. Die Befehle dieser API sind in der Datei 'websdk.js' zu finden (einfach über einen beliebigen Browser die login-Seite überprüfen). Ein paar stehen mit Erklärung dazu in der Datei [commands.py](https://github.com/MatrixEditor/hikvision-sdk-cam/blob/main/src/base/commands.py).
+Firmware decryption and extraction will onl work on newer `digicap.dav` files with more than `1` file entry in the header. All firmware files and updates can be downloaded from the following endpoint (EU):
 
-## Zugriff erhalten
+* https://www.hikvisioneurope.com/uk/portal
 
-Um nun Zugriff auf das Gerät zu bekommen, gibt es verschiedene Wege, die recht einfach umzusetzen sind:
+There is also a full list of files available at this enpoint stored in a JSON file named [firmwarelist.json](/gists/firmwarelist.json).
 
-1. Die 'configData'-Datei herunterladen, entschlüsseln und nach den Credentials für registrierten Accounts suchen (Stichwort: hikvision-decryptor github)
+> Info: There is an interesting file located in the extracted files of a firmware image: /hroot.img/initrd/etc/passwd. A password is set to the root user:
 
-    LINK: http:// [IP-ADDR] /System/configurationFile?auth=YWRtaW46MTEK
+    Name: passwd
+    Folder: -
+    Size: 44
+    Packed Size: 1 024
+    Mode: -rwxrwxr-x
+    Last change: 2016-12-23 08:27:46
+    Last modification: 2016-12-23 08:27:46
+    -------------------------------------------
 
-2. Die registrierten Nutzer/Accounts über einen Link laden und für einen das Passwort ändern (Anleitung dazu weiter unten)
+    root:ToCOv8qxP13qs:0:0:root:/root/:/bin/psh
 
-### Links ohne Authentifizierung
+Yet, the usage of this password is still unknown -> telnet and ssh-shell did not accept it. Login as root on the device web login page also did not work.
 
-Dieser Link zeigt Informationen zu allen registrierten Nutzern an:
+> Old exploit with authkey := YWRtaW46MTEK
 
-    * http://<IP-ADDRESS>/Security/users?auth=YWRtaW46MTEK oder http://<IP-ADDRESS>/ISAPI/Security/users?auth=YWRtaW46MTEK
+### Basic Usage
+---
 
-Hiermit kann ein (live)-Standbild der Kamera übertragen werden:
+- Firmware inspection and extraction
 
-    *http://<IP-ADDRESS>/onvif-http/snapshot?auth=YWRtaW46MTEK
+```python
+from hiktools import fmod
 
-By the way: Die meisten API-Abfragen, siehe [commands.py](https://github.com/MatrixEditor/hikvision-sdk-cam/blob/main/src/base/commands.py) können auch mit diesem AUTH_KEY getätigt werden.
+# Open the resource at the specified path (loading is done automatically)
+# or manually decrypt the firmware file (see documentation for actual code).
+with fmod.DigiCap('filename.dav') as dcap:
+  # Iterate over all files stored in the DigiCap object
+  for file_info in dcap:
+      print('> File name="%s", size=%d, pos=%d, checksum=%d' % file_info)
 
-URL für einen Livestream (mit VLC-Player oder QuickTime-Player wiedergeben; der AUTH_KEY funktionier hierbei nicht):
+  # get file amount and current language
+  print("Files: %d, Language: %d" % (dcap.head.files, dcap.head.language))
 
-    rtsp://<UNAME>:<PWD>@<IP-ADDRESS>:554/Streaming/channels/1/
+  # save all files stored in <filename.dav>
+  fmod.export(dcap, "outdir/")
+```
 
-## Main.py
+- Native interface on sending raw packets (only LINUX)
+```python
+from hiktools import csadp
 
-Der Aufbau dieses Programms ist gleich dem in dem Repository 'Frontier-Silicon-Radio'. Nach dem Start können nur noch die Befehle 'use', 'quit' und 'modules' benutzt werden:
+# Because the following module requires root priviledges it has to be 
+# imported directly
+from hiktools.csadp import CService
 
-* use [module-name] : nutzt das angegebene modul (die Namen der Module können mit 'modules' ausgegeben werden)
-* modules : gibt die Namen aller geladenen Module aus
-* quit : beendet das Programm
+sock = CService.l2socket('wlan0')
+counter = 2855
 
-Wählt man nun ein Modul aus, wird dies im Konsolen-Prompt mit angegeben. Jetzt können nur noch die Befehle 'set', 'run', 'show_options' und 'back' benutzt werden:
+# Building an inquiry packet
+packet = csadp.packet(
+  'src_mac', 'src_ip', 0x03, counter, 
+  checksum=csadp.from_counter(counter),
+  payload='\x00'*28
+)
 
-* set [option] [value] : Setzt die gewählte Option auf den gegebenen Wert
-* show options : gibt eine Liste mit allen nötigen Parametern aus
-* run : startet das modul
-* back : geht in das Startmenü zurück.
+# If you want to have the packet as an object use parse()
+packet_obj = csadp.parse(packet)
 
-## Module
+sock.send(packet) # or sock.send(bytes(packet_obj))
+response = csadp.parse(sock.recv(1024))
+```
 
-### /injection/password_changer
+- Interact with the device through UDP broadcast
+```python
+from hiktools import sadp
+from uuid import uuid4
 
-Mit diesem kleinen Script kann das Passwort eines bestimmten Nutzers/Accounts geändert werden (hierzu benötigt man lediglich den AUTH_KEY). Um dies zu tun benötigt das Programm folgende eingaben:
+# create a packet from a simple dict object
+inquiry = sadp.fromdict({
+  'Uuid': str(uuid4()).upper(),
+  'MAC': 'ff-ff-ff-ff-ff-ff',
+  'Types': 'inquiry'
+})
 
-    * IP-Addresse der Kamera,
-    * den Usernamen der Accounts,
-    * das neue Passwort,
-    * und die User-ID des Accounts.
+# Open up a client to communicate over broadcast
+with sadp.SADPClient() as client:
+  # send the inquiry packet
+  client.write(inquiry)
 
-### /injection/user_encounter
+  # iterate over all received packets (None is returned on error)
+  for response in client:
+    if response is None: break
+    # initiate the response
+    message = sadp.unmarhal(response.toxml())
 
-Hiermit können alle registrierten Nutzer mit ihrer ID, dem Usernamen und ihrem Rang ausgelesen werden. Um dies zu tun benötigt das Programm folgende eingaben:
-
-    * IP-Adresse der Kamera
-
-### /isapi/command_executor
-
-Wie der Name dieses Moduls schon verrät, versucht hier das Programm eine HTTP-GET Anfrage zu machen um eine API-Abfrage zu tätigen. Dazu benötigt das Programm folgende eingaben:
-
-    * IP-Addresse der Kamera,
-    * den Befehl, angefangen mit einem  '/'
-
-Falls hierbei keine Rückmeldung erscheint, einfach den Link im Browser eingeben und schauen, ob der Link doch funktioniert. Aus irgendwelchen Gründen schafft es die 'requests'-API nicht, die Authentifizierung der Seiten mit dem AUTH_KEY nicht, der Browser (getestet mit Chrome und Firefox) schon.
-
- 
+    # message objects contain a dict-like implementation
+    for property_name in message:
+      print(message[property_name]) 
+    
+    # e.g.
+    print('Device at', message['IPv4Address'])
+```
