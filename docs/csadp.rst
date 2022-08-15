@@ -10,8 +10,6 @@ Native Search Active Devices Protocol (CSADP)
 CService
 ~~~~~~~~
 
-.. automodule:: hiktools.csadp.CService
-
 .. autofunction:: hiktools.csadp.CService.l2socket
 
 Usage:
