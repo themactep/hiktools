@@ -20,7 +20,7 @@ Unfortunately, the SADP packet creation does not work properly due to invalid ch
 
 Communication on UDP works fine at the moment - this API is just a small wrapper which can be used for a more general API. 
 
-Firmware decryption and extraction will onl work on newer `digicap.dav` files with more than `1` file entry in the header. All firmware files and updates can be downloaded from the following endpoint (EU):
+Firmware decryption and extraction will only work on newer `digicap.dav` files with more than `1` file entry in the header. All firmware files and updates can be downloaded from the following endpoint (EU):
 
 * https://www.hikvisioneurope.com/uk/portal
 
@@ -111,7 +111,7 @@ with sadp.SADPClient() as client:
   for response in client:
     if response is None: break
     # initiate the response
-    message = sadp.unmarhal(response.toxml())
+    message = sadp.unmarshal(response.toxml())
 
     # message objects contain a dict-like implementation
     for property_name in message:

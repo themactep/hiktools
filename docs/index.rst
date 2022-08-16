@@ -129,7 +129,7 @@ Basic Usage
       for response in client:
          if response is None: break
          # initiate the response
-         message = sadp.unmarhal(response.toxml())
+         message = sadp.unmarshal(response.toxml())
 
          # message objects contain a dict-like implementation
          for property_name in message:
